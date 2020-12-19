@@ -19,22 +19,32 @@ RUN apt-get update  \
 &&sudo /usr/sbin/useradd --create-home --comment "Account for running Confluence" --shell /bin/bash confluence \
 &&  apt-get install openjdk-8-jre -y \
 &&  apt-get install mysql-server -y \
-    &&  apt-get install mysql-client -y \
+&&  apt-get install mysql-client -y \
 #Confluence Configuration
-&& mkdir -p                "${CONF_HOME}" \
-&& chmod -R 700            "${CONF_HOME}" \
-&& chown -R confluence:confluence  "${CONF_HOME}" \
-&& chmod -R u=rwx,go-rwx "${CONF_HOME}" \
-&& chmod -R o-x "${CONF_HOME}" \
-&& mkdir -p                "${CONF_INSTALL}/conf" \
+&& mkdir -p                    "${CONF_HOME}" \
+&& chmod -R 700                "${CONF_HOME}" \
+&& mkdir -p                    "${CONF_INSTALL}/conf" \
+&& sudo chown -R confluence    "${CONF_INSTALL}" \
+&& sudo chmod -R u=rwx,go-rwx  "${CONF_INSTALL}" \
+&& sudo chown -R confluence     "${CONF_HOME}" \
+&& sudo chmod -R u=rwx,go-rwx  "${CONF_HOME}" \
+&& sudo chmod -R o-x            "${CONF_HOME}" \
+&& mkdir -p                     "${CONF_INSTALL}/conf" \
+&& chmod -R 700                "${CONF_INSTALL}/conf" \
 && curl -Ls               "https://www.atlassian.com/software/confluence/downloads/binary/atlassian-confluence-${CONF_VERSION}.tar.gz" | tar -xz --directory "${CONF_INSTALL}" --strip-components=1 --no-same-owner \
 && curl -Ls                "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.44.tar.gz" | tar -xz --directory "${CONF_INSTALL}/confluence/WEB-INF/lib" --strip-components=1 --no-same-owner "mysql-connector-java-5.1.44/mysql-connector-java-5.1.44-bin.jar" \
+&& chmod -R 700            "${CONF_INSTALL}/conf" \
+&& chmod -R 700            "${CONF_INSTALL}/temp" \
+&& chmod -R 700            "${CONF_INSTALL}/logs" \
+&& chmod -R 700            "${CONF_INSTALL}/work" \
+&& chown -R confluence:confluence  "${CONF_INSTALL}/conf" \
+&& chown -R confluence:confluence  "${CONF_INSTALL}/temp" \
+&& chown -R confluence:confluence  "${CONF_INSTALL}/logs" \
+&& chown -R confluence:confluence  "${CONF_INSTALL}/work" \
+&& chown -R confluence:confluence  "${CONF_HOME}/" \
 && chown -R confluence:confluence  "${CONF_INSTALL}" \
-&& chmod -R u=rwx,go-rwx  "${CONF_INSTALL}" \
 && echo -e                 "\nconfluence.home=$CONF_HOME" >> "${CONF_INSTALL}/confluence/WEB-INF/classes/confluence-init.properties" \
 && touch -d "@0"           "${CONF_INSTALL}/conf/server.xml" \
-
-
 # Use the default unprivileged account. This could be considered bad practice
 # on systems where multiple processes end up being executed by 'daemon' but
 # here we only ever run one process anyway.
@@ -42,7 +52,6 @@ USER confluence:confluence
 
 # Expose default HTTP connector port.
 EXPOSE 8090
-
 # Set volume mount points for installation and home directory. Changes to the
 # home directory needs to be persisted as well as parts of the installation
 # directory due to eg. logs.
